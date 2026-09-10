@@ -1,332 +1,183 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LaboKit — boîte à outils pour TP scientifiques</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg: #150f20;
-  --bg-2: #1b1330;
-  --panel: #221a38;
-  --panel-2: #2a2044;
-  --border: rgba(178, 150, 255, 0.16);
-  --border-strong: rgba(178, 150, 255, 0.32);
-  --accent: #a78bfa;
-  --accent-strong: #8b5cf6;
-  --accent-soft: #c9b8fb;
-  --accent-dim: #4c3a7a;
-  --text: #f1edfb;
-  --text-muted: #a99cc7;
-  --text-faint: #756a91;
-  --good: #4ade80;
-  --warn: #fbbf24;
-  --bad: #fb7185;
-  --radius: 10px;
-  --mono: 'IBM Plex Mono', monospace;
-  --sans: 'IBM Plex Sans', sans-serif;
-  --display: 'Space Grotesk', sans-serif;
-}
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
-body{
-  background: radial-gradient(1200px 800px at 85% -10%, #2c1f4d 0%, transparent 60%), var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height:100vh;
-  display:flex;
-}
-::selection{ background: var(--accent-strong); color:#fff; }
-::-webkit-scrollbar{ width:10px; height:10px; }
-::-webkit-scrollbar-track{ background:transparent; }
-::-webkit-scrollbar-thumb{ background: var(--accent-dim); border-radius: 6px; }
-a{ color: var(--accent-soft); }
-
-button, input, select{
-  font-family: var(--sans);
-  color: var(--text);
-}
-input, select{
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 8px 10px;
-  font-size: 14px;
-  outline: none;
-}
-input:focus, select:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
-label{ font-size: 12.5px; color: var(--text-muted); display:block; margin-bottom:4px; }
-.field{ margin-bottom: 12px; }
-.field input, .field select{ width:100%; }
-.row{ display:flex; gap:12px; flex-wrap:wrap; }
-.row > .field{ flex:1; min-width:140px; }
-
-button.btn{
-  background: var(--accent-strong);
-  border: none;
-  color: #fff;
-  padding: 9px 16px;
-  border-radius: 7px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: transform .08s ease, background .15s ease;
-}
-button.btn:hover{ background: var(--accent); }
-button.btn:active{ transform: scale(0.97); }
-button.btn.ghost{
-  background: transparent;
-  border: 1px solid var(--border-strong);
-  color: var(--text);
-}
-button.btn.ghost:hover{ border-color: var(--accent); color: var(--accent-soft); }
-button.btn.small{ padding: 5px 10px; font-size: 12.5px; }
-button.btn.danger{ background: transparent; border:1px solid rgba(251,113,133,0.4); color: var(--bad); }
-button.btn.danger:hover{ background: rgba(251,113,133,0.12); }
-
-/* ---------- Layout ---------- */
-.sidebar{
-  width: 240px;
-  flex-shrink:0;
-  background: linear-gradient(180deg, #1a1329, #140e21);
-  border-right: 1px solid var(--border);
-  padding: 22px 14px;
-  position: sticky;
-  top:0;
-  height:100vh;
-  overflow-y:auto;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding: 0 8px 20px 8px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--border);
-}
-.brand .flask{
-  width:30px;height:30px;
-  display:flex;align-items:center;justify-content:center;
-  background: linear-gradient(135deg, var(--accent-strong), #6d28d9);
-  border-radius:8px;
-  font-size:16px;
-}
-.brand h1{
-  font-family: var(--display);
-  font-size: 17px;
-  margin:0;
-  letter-spacing: 0.2px;
-}
-.brand span{ display:block; font-size:11px; color:var(--text-faint); font-family:var(--mono); }
-
-nav.mainnav{ display:flex; flex-direction:column; gap:4px; }
-.nav-section{ margin-bottom: 6px; }
-.nav-main-btn{
-  width:100%;
-  text-align:left;
-  background:none;
-  border:none;
-  color: var(--text);
-  font-family: var(--display);
-  font-size: 14.5px;
-  font-weight:600;
-  padding: 11px 10px;
-  border-radius: 8px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.nav-main-btn:hover{ background: var(--panel); }
-.nav-main-btn.active{ background: var(--panel-2); color: var(--accent-soft); }
-.nav-main-btn .chev{ transition: transform .18s ease; color: var(--text-faint); font-size:11px; }
-.nav-main-btn.open .chev{ transform: rotate(90deg); }
-
-.subnav{ overflow:hidden; max-height:0; transition: max-height .22s ease; padding-left: 8px; }
-.subnav.open{ max-height: 400px; }
-.subnav button{
-  width:100%;
-  text-align:left;
-  background:none;
-  border:none;
-  border-left: 2px solid var(--border);
-  color: var(--text-muted);
-  font-size: 13px;
-  padding: 8px 12px;
-  cursor:pointer;
-  margin-top:2px;
-  border-radius: 0 6px 6px 0;
-}
-.subnav button:hover{ color: var(--text); background: rgba(167,139,250,0.06); }
-.subnav button.active{ color: var(--accent-soft); border-left-color: var(--accent); background: rgba(167,139,250,0.08); font-weight:600; }
-
-.main{
-  flex:1;
-  min-width:0;
-  padding: 28px 34px 60px 34px;
-  max-width: 1180px;
-}
-.page{ display:none; }
-.page.active{ display:block; animation: fadein .25s ease; }
-@keyframes fadein{ from{opacity:0; transform: translateY(4px);} to{opacity:1; transform:translateY(0);} }
-
-.page-header{ margin-bottom: 22px; }
-.page-header h2{ font-family: var(--display); font-size: 24px; margin:0 0 4px 0; }
-.page-header p{ color: var(--text-muted); margin:0; font-size: 14px; }
-
-.tool-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; border-bottom: 1px solid var(--border); padding-bottom: 14px;}
-.tool-tab{
-  background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  cursor:pointer;
-  font-weight:500;
-}
-.tool-tab:hover{ color:var(--text); border-color: var(--border-strong); }
-.tool-tab.active{ background: var(--accent-strong); color:#fff; border-color: transparent; }
-
-.panel{
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 20px;
-}
-.panel h3{ font-family: var(--display); font-size: 15px; margin: 0 0 14px 0; color: var(--accent-soft); }
-.panel h4{ font-family: var(--display); font-size: 13.5px; margin: 18px 0 10px 0; color: var(--text-muted); text-transform:none; }
-
-.tool-view{ display:none; }
-.tool-view.active{ display:block; }
-
-.result-box{
-  margin-top: 14px;
-  background: var(--bg-2);
-  border: 1px dashed var(--border-strong);
-  border-radius: 8px;
-  padding: 14px 16px;
-  font-family: var(--mono);
-  font-size: 15px;
-  color: var(--accent-soft);
-  min-height: 20px;
-}
-.result-box .big{ font-size: 22px; font-weight:600; color:#fff; }
-.result-box .sub{ color: var(--text-muted); font-size: 12.5px; font-family: var(--sans); margin-top:4px;}
-
-table.data-table{ width:100%; border-collapse: collapse; margin-top:10px; font-size:13.5px; }
-table.data-table th, table.data-table td{ text-align:left; padding: 7px 10px; border-bottom: 1px solid var(--border); }
-table.data-table th{ color: var(--text-muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.4px; }
-table.data-table td{ font-family: var(--mono); }
-
-.chip{ display:inline-block; background: var(--panel-2); border:1px solid var(--border); padding:2px 9px; border-radius:20px; font-size:11.5px; color:var(--text-muted); }
-
-/* basket / graph */
-#basket-list{ display:flex; flex-wrap:wrap; gap:8px; margin: 10px 0; }
-.basket-chip{ background: var(--bg-2); border:1px solid var(--border); border-radius:7px; padding:5px 10px; font-family:var(--mono); font-size:12.5px; display:flex; align-items:center; gap:8px;}
-.basket-chip button{ background:none; border:none; color: var(--bad); cursor:pointer; font-size:13px; }
-
-canvas.chart-canvas{ width:100%; height:280px; background: var(--bg-2); border-radius:8px; border:1px solid var(--border); }
-
-/* Timers */
-.timer-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:14px; }
-.timer-card{ background: var(--bg-2); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; position:relative; }
-.timer-card .tname{ font-size:12.5px; color:var(--text-muted); margin-bottom:6px; }
-.timer-card .tclock{ font-family: var(--mono); font-size: 30px; font-weight:600; color:#fff; }
-.timer-card.done .tclock{ color: var(--bad); animation: pulse 1s infinite; }
-@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-.timer-card .tbtns{ display:flex; gap:6px; justify-content:center; margin-top:10px; }
-.timer-card .tclose{ position:absolute; top:8px; right:10px; background:none;border:none;color:var(--text-faint); cursor:pointer; font-size:14px;}
-
-/* counters */
-.counter-list{ display:flex; flex-direction:column; gap:10px; }
-.counter-row{ display:flex; align-items:center; gap:12px; background: var(--bg-2); border:1px solid var(--border); border-radius:9px; padding:10px 14px; }
-.counter-row input.cname{ flex:1; background:transparent; border:none; font-size:14.5px; font-weight:600; color:var(--text); padding:4px; }
-.counter-row input.cname:focus{ background: var(--panel-2); border-radius:5px; }
-.counter-row .cval{ font-family:var(--mono); font-size:22px; min-width:50px; text-align:center; }
-.counter-row .cbtns{ display:flex; gap:6px; }
-.counter-row .cbtns button{ width:32px; height:32px; border-radius:7px; border:1px solid var(--border-strong); background:var(--panel); color:var(--text); font-size:16px; cursor:pointer; }
-.counter-row .cbtns button:hover{ border-color: var(--accent); color:var(--accent-soft); }
-.counter-row .cdel{ background:none; border:none; color:var(--text-faint); cursor:pointer; font-size:15px; }
-
-/* calculator */
-.calc-wrap{ max-width: 320px; }
-.calc-display{ background: var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:16px; text-align:right; font-family:var(--mono); font-size:28px; margin-bottom:12px; min-height:40px; overflow-x:auto; word-break: break-all; }
-.calc-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:8px; }
-.calc-grid button{ padding:16px 0; border-radius:8px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); font-size:16px; cursor:pointer; font-family:var(--mono);}
-.calc-grid button:hover{ border-color:var(--accent); }
-.calc-grid button.op{ background: var(--accent-dim); color: var(--accent-soft); }
-.calc-grid button.eq{ background: var(--accent-strong); color:#fff; grid-row: span 1; }
-.calc-grid button.zero{ grid-column: span 2; }
-
-/* library grids */
-.aa-filters{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-.aa-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:14px; }
-.aa-card{ background: var(--bg-2); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
-.aa-card svg{ width:100%; height:100px; }
-.aa-card .aa-name{ font-weight:600; font-size:14px; margin-top:6px;}
-.aa-card .aa-codes{ font-family:var(--mono); font-size:12px; color:var(--text-muted); }
-.aa-card .aa-cat{ margin-top:6px; }
-.aa-card .aa-mw{ font-size:11px; color:var(--text-faint); margin-top:4px; }
-.bond{ stroke: var(--accent-soft); stroke-width:2; }
-.atom-label{ fill: var(--warn); font-size:11px; font-family: var(--mono); font-weight:600; }
-.ring{ fill: rgba(167,139,250,0.08); stroke: var(--accent-soft); stroke-width:2; }
-
-.codon-layout{ display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; }
-.codon-wheel-wrap svg{ width:380px; height:380px; }
-.codon-wheel-wrap{ flex-shrink:0; }
-table.codon-table{ border-collapse:collapse; font-size:12.5px; }
-table.codon-table th, table.codon-table td{ border:1px solid var(--border); padding:5px 7px; text-align:center; font-family:var(--mono); }
-table.codon-table th{ background: var(--panel-2); color:var(--accent-soft); }
-td.codon-cell{ cursor:default; }
-td.codon-cell .aa3{ display:block; font-weight:600; color:#fff; }
-td.codon-cell .aa1{ display:block; font-size:10.5px; color:var(--text-faint); }
-td.codon-cell.stop{ background: rgba(251,113,133,0.12); }
-
-.periodic-wrap{ overflow-x:auto; padding-bottom:10px; }
-.periodic-grid{ display:grid; grid-template-columns: repeat(18, 52px); grid-template-rows: repeat(10, 52px); gap:3px; width:max-content; }
-.elem-cell{
-  border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  cursor:pointer; font-size:9px; color:#160f24; padding:2px; position:relative; transition: transform .1s;
-  border: 1px solid rgba(0,0,0,0.15);
-}
-.elem-cell:hover{ transform: scale(1.12); z-index:5; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
-.elem-cell .enum{ font-size:8px; align-self:flex-start; opacity:0.7; }
-.elem-cell .esym{ font-family: var(--display); font-weight:700; font-size:15px; line-height:1; }
-.legend{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; font-size:12px; }
-.legend-item{ display:flex; align-items:center; gap:6px; color:var(--text-muted); }
-.legend-swatch{ width:12px; height:12px; border-radius:3px; }
-#elem-detail{ margin-top:14px; }
-
-.footer-note{ margin-top: 40px; color: var(--text-faint); font-size:12px; text-align:center; }
-
-@media (max-width: 880px){
-  body{ flex-direction:column; }
-  .sidebar{ width:100%; height:auto; position:relative; }
-  .main{ padding: 20px; max-width:100%; }
-  .periodic-grid{ grid-template-columns: repeat(18, 38px); grid-template-rows: repeat(10, 38px); }
-  .elem-cell .esym{ font-size:12px; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaboKit - Assistant de Laboratoire</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="brand">
-    <div class="flask">🧪</div>
-    <div>
-      <h1>LaboKit</h1>
-      <span>outils de TP</span>
-    </div>
-  </div>
-  <nav class="mainnav" id="mainnav"></nav>
-</aside>
+    <aside class="sidebar">
+        <div class="logo">
+            <i data-lucide="flask-conical"></i>
+            <span>LaboKit</span>
+        </div>
+        <nav class="nav-menu">
+            <button class="nav-btn active" onclick="switchTab('labo')">
+                <i data-lucide="test-tube-2"></i> Labo
+            </button>
+            <button class="nav-btn" onclick="switchTab('general')">
+                <i data-lucide="wrench"></i> Général
+            </button>
+            <button class="nav-btn" onclick="switchTab('biblio')">
+                <i data-lucide="book-open"></i> Bibliothèque
+            </button>
+        </nav>
+    </aside>
 
-<main class="main" id="main"></main>
+    <main class="content">
 
-<script src="app.js"></script>
+        <!-- ONGLET LABO -->
+        <section id="tab-labo" class="tab-content active">
+            <h2>Espace Laboratoire</h2>
+            <div class="sub-tabs">
+                <button class="sub-btn active" onclick="switchSubTab('labo', 'dilution')">Dilutions</button>
+                <button class="sub-btn" onclick="switchSubTab('labo', 'molarite')">Calcul Molarité</button>
+                <button class="sub-btn" onclick="switchSubTab('labo', 'graphique')">Graphiques TP</button>
+            </div>
+
+            <!-- Sous-onglet Dilution -->
+            <div id="sub-dilution" class="sub-content active">
+                <div class="grid">
+                    <div class="card">
+                        <h3>Dilution Simple ($C_1 V_1 = C_2 V_2$)</h3>
+                        <div class="input-group">
+                            <label>C1 (Mère) : <input type="number" id="c1" placeholder="Ex: 10"></label>
+                            <label>V1 (À prélever) : <input type="number" id="v1" placeholder="Remplir si cherche C1/C2/V2"></label>
+                            <label>C2 (Fille) : <input type="number" id="c2" placeholder="Ex: 1"></label>
+                            <label>V2 (Final) : <input type="number" id="v2" placeholder="Ex: 100"></label>
+                        </div>
+                        <button onclick="calculerDilution()">Calculer la valeur manquante</button>
+                        <div id="res-dilution" class="result"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Préparer une Solution ($m = C \times V \times M$)</h3>
+                        <div class="input-group">
+                            <label>Concentration C (mol/L) : <input type="number" id="prep-c"></label>
+                            <label>Volume V (mL) : <input type="number" id="prep-v"></label>
+                            <label>Masse Molaire M (g/mol) : <input type="number" id="prep-m"></label>
+                        </div>
+                        <button onclick="calculerPreparation()">Calculer la Masse à peser</button>
+                        <div id="res-prep" class="result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sous-onglet Molarité -->
+            <div id="sub-molarite" class="sub-content">
+                <div class="card">
+                    <h3>Calculateur de Molarité et Concentration</h3>
+                    <div class="input-group">
+                        <label>Masse pesée (g) : <input type="number" id="mol-mass"></label>
+                        <label>Masse Molaire (g/mol) : <input type="number" id="mol-mm"></label>
+                        <label>Volume : <input type="number" id="mol-vol"></label>
+                        <label>Unité du Volume : 
+                            <select id="mol-unit">
+                                <option value="L">Litre (L)</option>
+                                <option value="mL">Millilitre (mL)</option>
+                                <option value="uL">Microlitre (µL)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <button onclick="calculerMolarite()">Calculer Molarité & Concentration</button>
+                    <div id="res-molarite" class="result"></div>
+                </div>
+            </div>
+
+            <!-- Sous-onglet Graphique -->
+            <div id="sub-graphique" class="sub-content">
+                <div class="card">
+                    <h3>Tracer directement un Graphique</h3>
+                    <div class="input-group-row">
+                        <input type="number" id="graph-x" placeholder="Axe X (ex: Absorbance)">
+                        <input type="number" id="graph-y" placeholder="Axe Y (ex: Concentration)">
+                        <button onclick="ajouterPoint()">Ajouter le point</button>
+                    </div>
+                    <ul id="points-list"></ul>
+                    <button onclick="tracerGraphique()">Générer le Graphique</button>
+                    <div class="chart-container">
+                        <canvas id="tpChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ONGLET GÉNÉRAL -->
+        <section id="tab-general" class="tab-content">
+            <h2>Outils Généraux</h2>
+            
+            <div class="grid">
+                <!-- Minuteurs / Chrono / Alarme -->
+                <div class="card">
+                    <h3><i data-lucide="timer"></i> Minuteurs Multiples</h3>
+                    <div class="input-group-row">
+                        <input type="number" id="timer-sec" placeholder="Durée en sec">
+                        <button onclick="ajouterMinuteur()">Créer Minuteur</button>
+                    </div>
+                    <div id="timers-container"></div>
+                </div>
+
+                <!-- Compteur de Cellules -->
+                <div class="card">
+                    <h3><i data-lucide="calculator"></i> Compteur de Cellules</h3>
+                    <div class="input-group-row">
+                        <input type="text" id="counter-name" placeholder="Nom (Ex: Lymphocytes)">
+                        <button onclick="ajouterCompteur()">+ Ajouter un compteur</button>
+                    </div>
+                    <div id="counters-container" class="counters-grid"></div>
+                </div>
+
+                <!-- Convertisseur d'unités (RPM/RCF, etc) -->
+                <div class="card">
+                    <h3><i data-lucide="refresh-cw"></i> Convertisseur RPM / RCF ($g$)</h3>
+                    <div class="input-group">
+                        <label>Rayon du rotor (cm) : <input type="number" id="conv-radius" value="10"></label>
+                        <label>Vitesse (RPM) : <input type="number" id="conv-rpm" placeholder="Ex: 3000"></label>
+                    </div>
+                    <button onclick="convertirRCF()">Calculer RCF (g)</button>
+                    <div id="res-rcf" class="result"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ONGLET BIBLIOTHÈQUE -->
+        <section id="tab-biblio" class="tab-content">
+            <h2>Bibliothèque Scientifique</h2>
+            <div class="sub-tabs">
+                <button class="sub-btn active" onclick="switchSubTab('biblio', 'amino')">Acides Animés</button>
+                <button class="sub-btn" onclick="switchSubTab('biblio', 'genetic')">Code Génétique</button>
+                <button class="sub-btn" onclick="switchSubTab('biblio', 'periodic')">Tableau Périodique</button>
+            </div>
+
+            <div id="sub-amino" class="sub-content active">
+                <div class="grid-cards" id="aa-cards">
+                    <!-- Généré dynamiquement en JS -->
+                </div>
+            </div>
+
+            <div id="sub-genetic" class="sub-content">
+                <div class="card">
+                    <h3>Table du Code Génétique (Codons)</h3>
+                    <p>Rechercher un codon (ex: AUG) :</p>
+                    <input type="text" id="codon-input" maxlength="3" placeholder="AUG" oninput="chercherCodon()">
+                    <div id="res-codon" class="result"></div>
+                </div>
+            </div>
+
+            <div id="sub-periodic" class="sub-content">
+                <h3>Tableau Périodique Interactif</h3>
+                <div class="periodic-table" id="periodic-table">
+                    <!-- Généré dynamiquement -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
