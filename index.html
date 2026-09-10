@@ -6,8 +6,8 @@
     <title>LaboKit - Boîte à Outils de Laboratoire</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Charger Lucide et Chart.js depuis le CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- CDNs sécurisés et stables via jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -43,13 +43,13 @@
 
             <nav class="nav-menu">
                 <button class="nav-btn active" onclick="switchTab('labo')">
-                    <i data-lucide="flask-conical"></i> Espace Labo
+                    <i data-lucide="flask-conical"></i> <span>Espace Labo</span>
                 </button>
                 <button class="nav-btn" onclick="switchTab('general')">
-                    <i data-lucide="wrench"></i> Général
+                    <i data-lucide="wrench"></i> <span>Général</span>
                 </button>
                 <button class="nav-btn" onclick="switchTab('biblio')">
-                    <i data-lucide="book-open"></i> Bibliothèque
+                    <i data-lucide="book-open"></i> <span>Bibliothèque</span>
                 </button>
             </nav>
         </aside>
@@ -376,7 +376,7 @@
                         <button class="pill-btn" onclick="switchGeneticView('wheel')">Vue Roue</button>
                     </div>
 
-                    <div id="genetic-table-view" class="genetic-grid">
+                    <div id="genetic-table-view">
                         <div id="codon-table-container" class="codon-container"></div>
                     </div>
 
