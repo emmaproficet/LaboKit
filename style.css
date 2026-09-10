@@ -1,0 +1,235 @@
+:root {
+    --bg-primary: #12091d;
+    --bg-secondary: #1a0f2e;
+    --card-bg: #261642;
+    --accent: #9d4edf;
+    --accent-hover: #b5179e;
+    --text-primary: #f3e8ff;
+    --text-secondary: #c4b5fd;
+    --border-color: #3c2468;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Aesthetic */
+.sidebar {
+    width: 240px;
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover, .nav-btn.active {
+    background-color: var(--accent);
+    color: white;
+    box-shadow: 0 4px 15px rgba(157, 78, 223, 0.4);
+}
+
+/* Content Area */
+.content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.sub-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.sub-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.sub-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
+.sub-content { display: none; }
+.sub-content.active { display: block; }
+
+/* Cards & Forms */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.card h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-group label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+input, select {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+    margin-top: 5px;
+}
+
+button {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+button:hover { background-color: var(--accent-hover); }
+
+.result {
+    margin-top: 15px;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border-left: 4px solid var(--accent);
+    border-radius: 4px;
+}
+
+/* Compteurs */
+.counters-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.counter-box {
+    background: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 120px;
+}
+
+.counter-btn {
+    font-size: 1.5rem;
+    margin: 5px;
+    width: auto;
+    padding: 5px 15px;
+}
+
+/* Acides Animés Grid */
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.aa-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.aa-card svg {
+    margin-top: 10px;
+    background: white;
+    border-radius: 6px;
+    padding: 5px;
+}
+
+/* Tableau Périodique (Mini) */
+.periodic-table {
+    display: grid;
+    grid-template-columns: repeat(18, 1fr);
+    gap: 4px;
+    overflow-x: auto;
+    padding-top: 15px;
+}
+
+.elem {
+    aspect-ratio: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+.elem-nonmetal { border-color: #7209b7; background: #2b0938; }
+.elem-noble { border-color: #4cc9f0; background: #092b38; }
+.elem-alkali { border-color: #f72585; background: #380920; }
