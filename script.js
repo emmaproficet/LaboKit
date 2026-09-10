@@ -2,66 +2,113 @@
 lucide.createIcons();
 
 /* ==========================================================================
-   1. NAVIGATION PRINCIPALE ET SOUS-ONGLETS
+   1. GESTION DES CLICS & NAVIGATION AUTOMATIQUE
    ========================================================================== */
 
-function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+document.addEventListener('DOMContentLoaded', () => {
     
-    document.getElementById(`tab-${tab}`).classList.add('active');
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
-    }
+    // --- Navigation principale (Sidebar) ---
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.currentTarget;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            target.classList.add('active');
+            if (target.textContent.includes('Labo')) {
+                document.getElementById('tab-labo').classList.add('active');
+            } else if (target.textContent.includes('Général')) {
+                document.getElementById('tab-general').classList.add('active');
+            } else if (target.textContent.includes('Bibliothèque')) {
+                document.getElementById('tab-biblio').classList.add('active');
+            }
+        });
+    });
+
+    // --- Sous-onglets principaux (Boutons gris/violet du haut) ---
+    document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.currentTarget;
+            const parentSection = target.closest('section');
+            
+            parentSection.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+            parentSection.querySelectorAll('.sub-panel').forEach(p => p.classList.add('hidden'));
+            
+            target.classList.add('active');
+            
+            const text = target.textContent.trim();
+            if (text.includes('Dilutions')) document.getElementById('lab-dilutions').classList.remove('hidden');
+            if (text.includes('Calcul Molarité')) document.getElementById('lab-molarite').classList.remove('hidden');
+            if (text.includes('Graphique TP')) document.getElementById('lab-graphique').classList.remove('hidden');
+            if (text.includes('Codon Wheel')) document.getElementById('bib-genetic').classList.remove('hidden');
+            if (text.includes('Tableau Périodique')) document.getElementById('bib-periodic').classList.remove('hidden');
+        });
+    });
+
+    // --- Pilules (Pill-tabs sous-modes) ---
+    document.querySelectorAll('.pill-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.currentTarget;
+            const container = target.parentElement;
+            
+            container.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+            target.classList.add('active');
+
+            const text = target.textContent.trim();
+
+            // Modes Dilutions
+            if (text.includes('Dilution') && !text.includes('série') && !text.includes('inverse')) showDilutionCard('simple');
+            if (text.includes('Dilution en série')) showDilutionCard('serie');
+            if (text.includes('Dilution inverse')) showDilutionCard('inverse');
+            if (text.includes('Préparer une solution')) showDilutionCard('prep');
+
+            // Modes Molarité
+            if (text === 'Masse') switchMolMode('masse');
+            if (text === 'Molarité') switchMolMode('molarite');
+            if (text === 'Conc.') switchMolMode('conc');
+
+            // Modes Général
+            if (text.includes('Minuteur')) showGenPanel('gen-timer');
+            if (text.includes('Compteur')) showGenPanel('gen-counter');
+            if (text.includes('Calculatrice')) showGenPanel('gen-calc');
+            if (text.includes('Convertisseur')) showGenPanel('gen-convert');
+
+            // Modes Code Génétique
+            if (text.includes('Codon table')) {
+                document.getElementById('genetic-table-view').classList.remove('hidden');
+                document.getElementById('genetic-wheel-view').classList.add('hidden');
+            }
+            if (text.includes('Codon wheel')) {
+                document.getElementById('genetic-table-view').classList.add('hidden');
+                document.getElementById('genetic-wheel-view').classList.remove('hidden');
+            }
+        });
+    });
+
+    // Initialisations
+    buildGeneticTable();
+    buildPeriodicTable();
+});
+
+function showDilutionCard(mode) {
+    ['simple', 'serie', 'inverse', 'prep'].forEach(m => {
+        const el = document.getElementById(`dilution-${m}`);
+        if (el) el.classList.add('hidden');
+    });
+    const target = document.getElementById(`dilution-${mode}`);
+    if (target) target.classList.remove('hidden');
 }
 
-function switchLabSub(sub) {
-    document.querySelectorAll('#tab-labo .sub-panel').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('#tab-labo .sub-tab-btn').forEach(el => el.classList.remove('active'));
-    
-    document.getElementById(`lab-${sub}`).classList.remove('hidden');
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
-    }
-}
-
-function switchGenTab(sub) {
-    document.querySelectorAll('#tab-general .gen-panel').forEach(el => el.classList.add('hidden'));
-    document.getElementById(`gen-${sub}`).classList.remove('hidden');
-    
-    if (event && event.currentTarget) {
-        const btns = event.currentTarget.parentElement.querySelectorAll('.pill-btn');
-        btns.forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-    }
-}
-
-function switchBibSub(sub) {
-    document.querySelectorAll('#tab-biblio .sub-panel').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('#tab-biblio .sub-tab-btn').forEach(el => el.classList.remove('active'));
-    
-    document.getElementById(`bib-${sub}`).classList.remove('hidden');
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
-    }
+function showGenPanel(id) {
+    document.querySelectorAll('.gen-panel').forEach(p => p.classList.add('hidden'));
+    const target = document.getElementById(id);
+    if (target) target.classList.remove('hidden');
 }
 
 
 /* ==========================================================================
-   2. ESPACE LABORATOIRE : DILUTIONS
+   2. CALCULS DILUTIONS
    ========================================================================== */
-
-function switchDilutionMode(mode) {
-    const modes = ['simple', 'serie', 'inverse', 'prep'];
-    modes.forEach(m => document.getElementById(`dilution-${m}`).classList.add('hidden'));
-    document.getElementById(`dilution-${mode}`).classList.remove('hidden');
-
-    if (event && event.currentTarget) {
-        const btns = event.currentTarget.parentElement.querySelectorAll('.pill-btn');
-        btns.forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-    }
-}
 
 function calcDilutionSimple() {
     let c1 = parseFloat(document.getElementById('ds-c1').value);
@@ -76,11 +123,9 @@ function calcDilutionSimple() {
         let v1 = (c2 * v2) / c1;
         let vSolvant = v2 - v1;
         document.getElementById('res-ds').innerHTML = `
-            Volume stock à prélever (V1) : <b>${v1.toFixed(3)}</b><br>
-            Volume de solvant à ajouter : <b>${vSolvant.toFixed(3)}</b>
+            Volume stock (V1) : <b>${v1.toFixed(3)}</b><br>
+            Volume solvant : <b>${vSolvant.toFixed(3)}</b>
         `;
-    } else {
-        document.getElementById('res-ds').innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
@@ -92,7 +137,7 @@ function calcDilutionSerie() {
     if (c1 && factor && steps) {
         let text = "<b>Série calculée :</b><br>";
         let currentC = c1;
-        graphPoints = []; // Réinitialise pour le graphique TP
+        graphPoints = [];
 
         for (let i = 1; i <= steps; i++) {
             text += `Tube ${i}: Conc = <b>${currentC.toFixed(3)}</b><br>`;
@@ -101,8 +146,6 @@ function calcDilutionSerie() {
         }
         document.getElementById('res-dser').innerHTML = text;
         updatePointsChips();
-    } else {
-        document.getElementById('res-dser').innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
@@ -115,8 +158,6 @@ function calcDilutionInverse() {
         let vTotal = v1 + v2;
         let c2 = (c1 * v1) / vTotal;
         document.getElementById('res-di').innerHTML = `Concentration finale (C2) = <b>${c2.toFixed(4)}</b>`;
-    } else {
-        document.getElementById('res-di').innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
@@ -128,26 +169,18 @@ function calcPrepSolution() {
     if (mw && c && v_ml) {
         let masse_g = (c / 1000) * (v_ml / 1000) * mw;
         document.getElementById('res-dp').innerHTML = `Masse à peser : <b>${masse_g.toFixed(4)} g</b>`;
-    } else {
-        document.getElementById('res-dp').innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
 
 /* ==========================================================================
-   3. ESPACE LABORATOIRE : MOLARITÉ
+   3. MOLARITÉ & FORMULES
    ========================================================================== */
 
 let currentMolMode = 'masse';
 
 function switchMolMode(mode) {
     currentMolMode = mode;
-    if (event && event.currentTarget) {
-        const btns = event.currentTarget.parentElement.querySelectorAll('.pill-btn');
-        btns.forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-    }
-
     const badge = document.getElementById('mol-formula-badge');
     const formulaText = document.getElementById('mol-formula-text');
 
@@ -168,7 +201,6 @@ function calcMolariteComplete() {
     let mw = parseFloat(document.getElementById('mol-in-mw').value);
     let c = parseFloat(document.getElementById('mol-in-c').value);
     let v_ml = parseFloat(document.getElementById('mol-in-v').value);
-
     let resText = document.getElementById('mol-res-text');
 
     if (currentMolMode === 'masse' && c && v_ml && mw) {
@@ -178,13 +210,13 @@ function calcMolariteComplete() {
         let res = m / (mw * (v_ml / 1000));
         resText.innerText = `${res.toFixed(4)} M`;
     } else {
-        resText.innerText = "Saisie incomplète";
+        resText.innerText = "Champs incomplets";
     }
 }
 
 
 /* ==========================================================================
-   4. ESPACE LABORATOIRE : GRAPHIQUE TP
+   4. GRAPHIQUE TP
    ========================================================================== */
 
 let graphPoints = [];
@@ -204,6 +236,7 @@ function addGraphPoint() {
 
 function updatePointsChips() {
     let container = document.getElementById('points-list-container');
+    if(!container) return;
     container.innerHTML = graphPoints.map((p, idx) => `
         <span class="unit-tag" style="margin:2px; display:inline-flex; align-items:center; gap:6px;">
             (${p.x}, ${p.y}) 
@@ -227,28 +260,21 @@ function renderChart() {
         type: 'line',
         data: {
             datasets: [{
-                label: 'Points TP',
+                label: 'Série TP',
                 data: graphPoints,
                 borderColor: '#a855f7',
                 backgroundColor: 'rgba(168, 85, 247, 0.2)',
                 tension: 0.2,
-                showLine: true,
-                pointRadius: 6
+                showLine: true
             }]
         },
-        options: {
-            responsive: true,
-            scales: {
-                x: { type: 'linear', title: { display: true, text: 'Axe X' } },
-                y: { title: { display: true, text: 'Axe Y' } }
-            }
-        }
+        options: { responsive: true }
     });
 }
 
 
 /* ==========================================================================
-   5. OUTILS GÉNÉRAUX : CHRONOMÈTRE ET MINUTEURS
+   5. UTILS GÉNÉRAUX (CHRONO, COMPTEUR, CALCULATRICE)
    ========================================================================== */
 
 let chronoInterval = null;
@@ -311,11 +337,6 @@ function createTimer() {
     }, 1000);
 }
 
-
-/* ==========================================================================
-   6. OUTILS GÉNÉRAUX : COMPTEUR & CALCULATRICE
-   ========================================================================== */
-
 function addNewCounter() {
     let name = document.getElementById('counter-title-in').value || 'Cellule';
     let wrapper = document.getElementById('counters-wrapper');
@@ -326,7 +347,6 @@ function addNewCounter() {
         <h4>${name}</h4>
         <div class="count-val">0</div>
         <button onclick="let v = this.previousElementSibling; v.innerText = parseInt(v.innerText)+1">+</button>
-        <button style="background:#fee2e2; color:#b91c1c;" onclick="let v = this.parentElement.querySelector('.count-val'); if(parseInt(v.innerText)>0) v.innerText = parseInt(v.innerText)-1">-</button>
     `;
     wrapper.appendChild(card);
     document.getElementById('counter-title-in').value = '';
@@ -346,7 +366,7 @@ function calcEval() {
 
 
 /* ==========================================================================
-   7. OUTILS GÉNÉRAUX : CONVERTISSEUR D'UNITÉS
+   6. CONVERTISSEUR & BIBLIOTHÈQUE
    ========================================================================== */
 
 const unitOptions = {
@@ -358,11 +378,6 @@ const unitOptions = {
 };
 
 function switchConvCategory(cat) {
-    if (event && event.currentTarget) {
-        document.querySelectorAll('.sub-conv').forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-    }
-
     if (cat === 'rcf') {
         document.getElementById('standard-converter').classList.add('hidden');
         document.getElementById('rcf-converter').classList.remove('hidden');
@@ -381,20 +396,6 @@ function switchConvCategory(cat) {
     }
 }
 
-function runUnitConversion() {
-    let val = parseFloat(document.getElementById('conv-val').value);
-    let from = document.getElementById('conv-from').value;
-    let to = document.getElementById('conv-to').value;
-
-    if (isNaN(val)) {
-        document.getElementById('conv-res-text').innerText = "0";
-        return;
-    }
-
-    // Calcul simplifié de conversion générique
-    document.getElementById('conv-res-text').innerText = `${val} [${from} → ${to}]`;
-}
-
 function calcRCF() {
     let r = parseFloat(document.getElementById('rcf-r').value);
     let rpm = parseFloat(document.getElementById('rcf-rpm').value);
@@ -403,11 +404,6 @@ function calcRCF() {
         document.getElementById('conv-res-text').innerText = `${Math.round(rcf)} g`;
     }
 }
-
-
-/* ==========================================================================
-   8. BIBLIOTHÈQUE : CODE GÉNÉTIQUE & TABLEAU PÉRIODIQUE
-   ========================================================================== */
 
 const geneticData = [
     { first: "U", second: "U", codons: [ {c:"UUU", aa:"Phenylalanine"}, {c:"UUC", aa:"Phenylalanine"}, {c:"UUA", aa:"Leucine"}, {c:"UUG", aa:"Leucine"} ] },
@@ -418,7 +414,7 @@ const geneticData = [
 
 function buildGeneticTable() {
     const container = document.getElementById('codon-table-container');
-    if (!container) return;
+    if(!container) return;
     container.innerHTML = geneticData.map(block => `
         <div class="codon-block">
             <div class="codon-block-title" style="background:#e0e7ff;">${block.first} - ${block.second}</div>
@@ -432,22 +428,6 @@ function buildGeneticTable() {
     `).join('');
 }
 
-function switchGeneticView(view) {
-    if (event && event.currentTarget) {
-        const btns = event.currentTarget.parentElement.querySelectorAll('.pill-btn');
-        btns.forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-    }
-
-    if (view === 'table') {
-        document.getElementById('genetic-table-view').classList.remove('hidden');
-        document.getElementById('genetic-wheel-view').classList.add('hidden');
-    } else {
-        document.getElementById('genetic-table-view').classList.add('hidden');
-        document.getElementById('genetic-wheel-view').classList.remove('hidden');
-    }
-}
-
 const periodicElements = [
     { n: 1, s: "H", name: "Hydrogène", cat: "nonmetal", pos: 1 },
     { n: 2, s: "He", name: "Hélium", cat: "noble", pos: 18 },
@@ -458,23 +438,15 @@ const periodicElements = [
     { n: 7, s: "N", name: "Azote", cat: "nonmetal", pos: 33 },
     { n: 8, s: "O", name: "Oxygène", cat: "nonmetal", pos: 34 },
     { n: 9, s: "F", name: "Fluor", cat: "halogen", pos: 35 },
-    { n: 10, s: "Ne", name: "Néon", cat: "noble", pos: 36 },
-    { n: 11, s: "Na", name: "Sodium", cat: "alkali", pos: 37 },
-    { n: 12, s: "Mg", name: "Magnésium", cat: "alkaline-earth", pos: 38 },
-    { n: 13, s: "Al", name: "Aluminium", cat: "post-trans", pos: 49 },
-    { n: 14, s: "Si", name: "Silicium", cat: "metalloid", pos: 50 },
-    { n: 15, s: "P", name: "Phosphore", cat: "nonmetal", pos: 51 },
-    { n: 16, s: "S", name: "Soufre", cat: "nonmetal", pos: 52 },
-    { n: 17, s: "Cl", name: "Chlore", cat: "halogen", pos: 53 },
-    { n: 18, s: "Ar", name: "Argon", cat: "noble", pos: 54 }
+    { n: 10, s: "Ne", name: "Néon", cat: "noble", pos: 36 }
 ];
 
 function buildPeriodicTable() {
     const board = document.getElementById('periodic-board');
-    if (!board) return;
+    if(!board) return;
     board.innerHTML = '';
     
-    for (let i = 1; i <= 54; i++) {
+    for (let i = 1; i <= 36; i++) {
         let el = periodicElements.find(e => e.pos === i);
         if (el) {
             board.innerHTML += `
@@ -497,7 +469,3 @@ function filterPeriodicTable() {
         else el.style.opacity = "0.2";
     });
 }
-
-// Initialisations automatiques au chargement de la page
-buildGeneticTable();
-buildPeriodicTable();
