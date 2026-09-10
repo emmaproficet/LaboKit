@@ -1,89 +1,89 @@
-// Attendre le chargement complet de la structure DOM
+// Attendre le chargement complet du document
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Charger Lucide de manière totalement isolée (ne bloque pas si le CDN est bloqué)
+    // 1. Initialiser les icônes de manière sécurisée
+    initLucideIcons();
+
+    // 2. Générer les tableaux dynamiques
+    buildGeneticTable();
+    buildPeriodicTable();
+    switchConvCategory('volume'); // Remplir les options par défaut du convertisseur
+});
+
+function initLucideIcons() {
     try {
-        if (typeof lucide !== 'undefined') {
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
             lucide.createIcons();
         }
     } catch (e) {
-        console.warn("Icônes Lucide indisponibles :", e);
+        console.warn("Lucide Icons non chargé :", e);
     }
-
-    // 2. Initialiser les sous-composants
-    if (typeof buildGeneticTable === 'function') buildGeneticTable();
-    if (typeof buildPeriodicTable === 'function') buildPeriodicTable();
-
-    // 3. ÉCOUTEUR GLOBAL DE CLICS (Infaillible pour tous les onglets)
-    document.addEventListener('click', (e) => {
-        // Clic sur un bouton de la barre latérale
-        const navBtn = e.target.closest('.nav-btn');
-        if (navBtn) {
-            const attr = navBtn.getAttribute('onclick');
-            if (attr && attr.includes('switchTab')) {
-                const tabName = attr.match(/'([^']+)'/)[1];
-                activateTab(tabName, navBtn);
-            }
-        }
-
-        // Clic sur les sous-onglets
-        const subBtn = e.target.closest('.sub-tab-btn, .pill-btn');
-        if (subBtn) {
-            const attr = subBtn.getAttribute('onclick');
-            if (attr) {
-                if (attr.includes('switchLabSub')) {
-                    const subName = attr.match(/'([^']+)'/)[1];
-                    activateSubPanel('#tab-labo', 'lab-', subName, subBtn);
-                } else if (attr.includes('switchGenTab')) {
-                    const subName = attr.match(/'([^']+)'/)[1];
-                    activateSubPanel('#tab-general', 'gen-', subName, subBtn);
-                } else if (attr.includes('switchBibSub')) {
-                    const subName = attr.match(/'([^']+)'/)[1];
-                    activateSubPanel('#tab-biblio', 'bib-', subName, subBtn);
-                }
-            }
-        }
-    });
-});
+}
 
 
 /* ==========================================================================
-   1. NAVIGATION ET DÉPLACEMENT DANS L'APPLICATION
+   1. NAVIGATION ENTRE ONGLETS ET PANNEAUX
    ========================================================================== */
 
-function activateTab(tab, btnElement) {
+function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
 
-    const targetTab = document.getElementById(`tab-${tab}`);
-    if (targetTab) targetTab.classList.add('active');
-    if (btnElement) btnElement.classList.add('active');
+    const target = document.getElementById(`tab-${tab}`);
+    if (target) target.classList.add('active');
+
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
+    }
+    
+    initLucideIcons();
 }
 
-function activateSubPanel(parentSelector, idPrefix, subName, btnElement) {
-    const parent = document.querySelector(parentSelector);
+function switchLabSub(sub) {
+    const parent = document.getElementById('tab-labo');
     if (!parent) return;
 
-    parent.querySelectorAll('.sub-panel, .gen-panel').forEach(el => el.classList.add('hidden'));
-    
-    const target = document.getElementById(`${idPrefix}${subName}`);
+    parent.querySelectorAll('.sub-panel').forEach(el => el.classList.add('hidden'));
+    const target = document.getElementById(`lab-${sub}`);
     if (target) target.classList.remove('hidden');
 
-    if (btnElement && btnElement.parentElement) {
-        btnElement.parentElement.querySelectorAll('.sub-tab-btn, .pill-btn').forEach(b => b.classList.remove('active'));
-        btnElement.classList.add('active');
+    if (window.event && window.event.currentTarget) {
+        parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+        window.event.currentTarget.classList.add('active');
     }
 }
 
-// Fonctions déclenchées par l'attribut HTML
-function switchTab(t) { activateTab(t, window.event?.currentTarget); }
-function switchLabSub(s) { activateSubPanel('#tab-labo', 'lab-', s, window.event?.currentTarget); }
-function switchGenTab(s) { activateSubPanel('#tab-general', 'gen-', s, window.event?.currentTarget); }
-function switchBibSub(s) { activateSubPanel('#tab-biblio', 'bib-', s, window.event?.currentTarget); }
+function switchGenTab(sub) {
+    const parent = document.getElementById('tab-general');
+    if (!parent) return;
+
+    parent.querySelectorAll('.gen-panel').forEach(el => el.classList.add('hidden'));
+    const target = document.getElementById(`gen-${sub}`);
+    if (target) target.classList.remove('hidden');
+
+    if (window.event && window.event.currentTarget) {
+        parent.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        window.event.currentTarget.classList.add('active');
+    }
+}
+
+function switchBibSub(sub) {
+    const parent = document.getElementById('tab-biblio');
+    if (!parent) return;
+
+    parent.querySelectorAll('.sub-panel').forEach(el => el.classList.add('hidden'));
+    const target = document.getElementById(`bib-${sub}`);
+    if (target) target.classList.remove('hidden');
+
+    if (window.event && window.event.currentTarget) {
+        parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+        window.event.currentTarget.classList.add('active');
+    }
+}
 
 
 /* ==========================================================================
-   2. ESPACE LABO (DILUTIONS, MOLARITÉ & GRAPHIQUE)
+   2. CALCULS DE LABORATOIRE (DILUTION, MOLARITÉ, GRAPHIQUE)
    ========================================================================== */
 
 function switchDilutionMode(mode) {
@@ -249,7 +249,7 @@ function renderChart() {
                 showLine: true
             }]
         },
-        options: { responsive: true }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
@@ -415,7 +415,7 @@ function calcRCF() {
 
 const geneticData = [
     { first: "U", second: "U", codons: [ {c:"UUU", aa:"Phenylalanine"}, {c:"UUC", aa:"Phenylalanine"}, {c:"UUA", aa:"Leucine"}, {c:"UUG", aa:"Leucine"} ] },
-    { first: "A", second: "U", codons: [ {c:"AUU", aa:"Isoleucine"}, {c:"AUC", aa:"Isoleucine"}, {c:"AUG", aa:"Methionine (Start)", isStart:true} ] }
+    { first: "A", second: "U", codons: [ {c:"AUU", aa:"Isoleucine"}, {c:"AUC", aa:"Isoleucine"}, {c:"AUG", aa:"Methionine (Start)"} ] }
 ];
 
 function buildGeneticTable() {
