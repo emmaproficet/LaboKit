@@ -1,82 +1,93 @@
-// Attendre que la page HTML soit entièrement chargée avant d'exécuter le script
+// Attendre le chargement complet de la structure DOM
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Charger les icônes Lucide de manière sécurisée (sans bloquer si le CDN plante)
+    // 1. Charger Lucide de manière totalement isolée (ne bloque pas si le CDN est bloqué)
     try {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
     } catch (e) {
-        console.warn("Lucide icons n'a pas pu être chargé, mais le site fonctionne :", e);
+        console.warn("Icônes Lucide indisponibles :", e);
     }
 
-    // 2. Initialiser la bibliothèque et le tableau périodique
-    buildGeneticTable();
-    buildPeriodicTable();
+    // 2. Initialiser les sous-composants
+    if (typeof buildGeneticTable === 'function') buildGeneticTable();
+    if (typeof buildPeriodicTable === 'function') buildPeriodicTable();
+
+    // 3. ÉCOUTEUR GLOBAL DE CLICS (Infaillible pour tous les onglets)
+    document.addEventListener('click', (e) => {
+        // Clic sur un bouton de la barre latérale
+        const navBtn = e.target.closest('.nav-btn');
+        if (navBtn) {
+            const attr = navBtn.getAttribute('onclick');
+            if (attr && attr.includes('switchTab')) {
+                const tabName = attr.match(/'([^']+)'/)[1];
+                activateTab(tabName, navBtn);
+            }
+        }
+
+        // Clic sur les sous-onglets
+        const subBtn = e.target.closest('.sub-tab-btn, .pill-btn');
+        if (subBtn) {
+            const attr = subBtn.getAttribute('onclick');
+            if (attr) {
+                if (attr.includes('switchLabSub')) {
+                    const subName = attr.match(/'([^']+)'/)[1];
+                    activateSubPanel('#tab-labo', 'lab-', subName, subBtn);
+                } else if (attr.includes('switchGenTab')) {
+                    const subName = attr.match(/'([^']+)'/)[1];
+                    activateSubPanel('#tab-general', 'gen-', subName, subBtn);
+                } else if (attr.includes('switchBibSub')) {
+                    const subName = attr.match(/'([^']+)'/)[1];
+                    activateSubPanel('#tab-biblio', 'bib-', subName, subBtn);
+                }
+            }
+        }
+    });
 });
 
+
 /* ==========================================================================
-   1. NAVIGATION PRINCIPALE ET SOUS-ONGLETS (RÉSILIENTE)
+   1. NAVIGATION ET DÉPLACEMENT DANS L'APPLICATION
    ========================================================================== */
 
-function switchTab(tab) {
+function activateTab(tab, btnElement) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-    
+
     const targetTab = document.getElementById(`tab-${tab}`);
     if (targetTab) targetTab.classList.add('active');
+    if (btnElement) btnElement.classList.add('active');
+}
 
-    // Trouver le bouton cliqué
-    if (window.event && window.event.currentTarget) {
-        window.event.currentTarget.classList.add('active');
+function activateSubPanel(parentSelector, idPrefix, subName, btnElement) {
+    const parent = document.querySelector(parentSelector);
+    if (!parent) return;
+
+    parent.querySelectorAll('.sub-panel, .gen-panel').forEach(el => el.classList.add('hidden'));
+    
+    const target = document.getElementById(`${idPrefix}${subName}`);
+    if (target) target.classList.remove('hidden');
+
+    if (btnElement && btnElement.parentElement) {
+        btnElement.parentElement.querySelectorAll('.sub-tab-btn, .pill-btn').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
     }
 }
 
-function switchLabSub(sub) {
-    document.querySelectorAll('#tab-labo .sub-panel').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('#tab-labo .sub-tab-btn').forEach(el => el.classList.remove('active'));
-    
-    const targetSub = document.getElementById(`lab-${sub}`);
-    if (targetSub) targetSub.classList.remove('hidden');
-
-    if (window.event && window.event.currentTarget) {
-        window.event.currentTarget.classList.add('active');
-    }
-}
-
-function switchGenTab(sub) {
-    document.querySelectorAll('#tab-general .gen-panel').forEach(el => el.classList.add('hidden'));
-    
-    const targetGen = document.getElementById(`gen-${sub}`);
-    if (targetGen) targetGen.classList.remove('hidden');
-    
-    if (window.event && window.event.currentTarget) {
-        const btns = window.event.currentTarget.parentElement.querySelectorAll('.pill-btn');
-        btns.forEach(b => b.classList.remove('active'));
-        window.event.currentTarget.classList.add('active');
-    }
-}
-
-function switchBibSub(sub) {
-    document.querySelectorAll('#tab-biblio .sub-panel').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('#tab-biblio .sub-tab-btn').forEach(el => el.classList.remove('active'));
-    
-    const targetBib = document.getElementById(`bib-${sub}`);
-    if (targetBib) targetBib.classList.remove('hidden');
-
-    if (window.event && window.event.currentTarget) {
-        window.event.currentTarget.classList.add('active');
-    }
-}
+// Fonctions déclenchées par l'attribut HTML
+function switchTab(t) { activateTab(t, window.event?.currentTarget); }
+function switchLabSub(s) { activateSubPanel('#tab-labo', 'lab-', s, window.event?.currentTarget); }
+function switchGenTab(s) { activateSubPanel('#tab-general', 'gen-', s, window.event?.currentTarget); }
+function switchBibSub(s) { activateSubPanel('#tab-biblio', 'bib-', s, window.event?.currentTarget); }
 
 
 /* ==========================================================================
-   2. DILUTIONS & FORMULAIRES
+   2. ESPACE LABO (DILUTIONS, MOLARITÉ & GRAPHIQUE)
    ========================================================================== */
 
 function switchDilutionMode(mode) {
-    const modes = ['simple', 'serie', 'inverse', 'prep'];
-    modes.forEach(m => {
+    ['simple', 'serie', 'inverse', 'prep'].forEach(m => {
         const el = document.getElementById(`dilution-${m}`);
         if (el) el.classList.add('hidden');
     });
@@ -92,83 +103,66 @@ function switchDilutionMode(mode) {
 }
 
 function calcDilutionSimple() {
-    let c1 = parseFloat(document.getElementById('ds-c1').value);
-    let c2 = parseFloat(document.getElementById('ds-c2').value);
-    let v2 = parseFloat(document.getElementById('ds-v2').value);
-
+    let c1 = parseFloat(document.getElementById('ds-c1')?.value);
+    let c2 = parseFloat(document.getElementById('ds-c2')?.value);
+    let v2 = parseFloat(document.getElementById('ds-v2')?.value);
     let res = document.getElementById('res-ds');
-    if (c1 && c2 && v2) {
+
+    if (c1 && c2 && v2 && res) {
         if (c2 >= c1) {
             res.innerHTML = `<span style="color:red;">Erreur: C2 doit être inférieure à C1.</span>`;
             return;
         }
         let v1 = (c2 * v2) / c1;
         let vSolvant = v2 - v1;
-        res.innerHTML = `Volume stock (V1) : <b>${v1.toFixed(3)}</b><br>Volume solvant : <b>${vSolvant.toFixed(3)}</b>`;
-    } else {
+        res.innerHTML = `Volume stock (V1) : <b>${v1.toFixed(3)} mL</b><br>Volume solvant : <b>${vSolvant.toFixed(3)} mL</b>`;
+    } else if (res) {
         res.innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
 function calcDilutionSerie() {
-    let c1 = parseFloat(document.getElementById('dser-c1').value);
-    let factor = parseFloat(document.getElementById('dser-factor').value);
-    let steps = parseInt(document.getElementById('dser-steps').value);
+    let c1 = parseFloat(document.getElementById('dser-c1')?.value);
+    let factor = parseFloat(document.getElementById('dser-factor')?.value);
+    let steps = parseInt(document.getElementById('dser-steps')?.value);
     let res = document.getElementById('res-dser');
 
-    if (c1 && factor && steps) {
+    if (c1 && factor && steps && res) {
         let text = "<b>Série calculée :</b><br>";
         let currentC = c1;
-        graphPoints = [];
-
         for (let i = 1; i <= steps; i++) {
             text += `Tube ${i}: Conc = <b>${currentC.toFixed(3)}</b><br>`;
-            graphPoints.push({ x: i, y: parseFloat(currentC.toFixed(3)) });
             currentC /= factor;
         }
         res.innerHTML = text;
-        updatePointsChips();
-    } else {
-        res.innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
 function calcDilutionInverse() {
-    let c1 = parseFloat(document.getElementById('di-c1').value);
-    let v1 = parseFloat(document.getElementById('di-v1').value);
-    let v2 = parseFloat(document.getElementById('di-v2').value);
+    let c1 = parseFloat(document.getElementById('di-c1')?.value);
+    let v1 = parseFloat(document.getElementById('di-v1')?.value);
+    let v2 = parseFloat(document.getElementById('di-v2')?.value);
     let res = document.getElementById('res-di');
 
-    if (c1 && v1 && v2) {
-        let vTotal = v1 + v2;
-        let c2 = (c1 * v1) / vTotal;
+    if (c1 && v1 && v2 && res) {
+        let c2 = (c1 * v1) / (v1 + v2);
         res.innerHTML = `Concentration finale (C2) = <b>${c2.toFixed(4)}</b>`;
-    } else {
-        res.innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
 function calcPrepSolution() {
-    let mw = parseFloat(document.getElementById('dp-mw').value);
-    let c = parseFloat(document.getElementById('dp-c').value);
-    let v_ml = parseFloat(document.getElementById('dp-v').value);
+    let mw = parseFloat(document.getElementById('dp-mw')?.value);
+    let c = parseFloat(document.getElementById('dp-c')?.value);
+    let v_ml = parseFloat(document.getElementById('dp-v')?.value);
     let res = document.getElementById('res-dp');
 
-    if (mw && c && v_ml) {
+    if (mw && c && v_ml && res) {
         let masse_g = (c / 1000) * (v_ml / 1000) * mw;
         res.innerHTML = `Masse à peser : <b>${masse_g.toFixed(4)} g</b>`;
-    } else {
-        res.innerHTML = `Veuillez remplir tous les champs.`;
     }
 }
 
-
-/* ==========================================================================
-   3. MOLARITÉ & GRAPHIQUE TP
-   ========================================================================== */
-
 let currentMolMode = 'masse';
-
 function switchMolMode(mode) {
     currentMolMode = mode;
     if (window.event && window.event.currentTarget) {
@@ -183,29 +177,25 @@ function switchMolMode(mode) {
     if (badge && formulaText) {
         if (mode === 'masse') {
             badge.innerText = "m"; formulaText.innerText = "C × V × MW";
-        } else if (mode === 'molarite') {
-            badge.innerText = "M"; formulaText.innerText = "m / ( MW × V )";
         } else {
-            badge.innerText = "C"; formulaText.innerText = "n / V";
+            badge.innerText = "M"; formulaText.innerText = "m / ( MW × V )";
         }
     }
 }
 
 function calcMolariteComplete() {
-    let m = parseFloat(document.getElementById('mol-in-m').value);
-    let mw = parseFloat(document.getElementById('mol-in-mw').value);
-    let c = parseFloat(document.getElementById('mol-in-c').value);
-    let v_ml = parseFloat(document.getElementById('mol-in-v').value);
+    let m = parseFloat(document.getElementById('mol-in-m')?.value);
+    let mw = parseFloat(document.getElementById('mol-in-mw')?.value);
+    let c = parseFloat(document.getElementById('mol-in-c')?.value);
+    let v_ml = parseFloat(document.getElementById('mol-in-v')?.value);
     let resText = document.getElementById('mol-res-text');
 
     if (currentMolMode === 'masse' && c && v_ml && mw) {
         let res = (c / 1000) * (v_ml / 1000) * mw;
-        resText.innerText = `${res.toFixed(4)} g`;
+        if (resText) resText.innerText = `${res.toFixed(4)} g`;
     } else if (currentMolMode === 'molarite' && m && mw && v_ml) {
         let res = m / (mw * (v_ml / 1000));
-        resText.innerText = `${res.toFixed(4)} M`;
-    } else {
-        resText.innerText = "Saisie incomplète";
+        if (resText) resText.innerText = `${res.toFixed(4)} M`;
     }
 }
 
@@ -213,8 +203,8 @@ let graphPoints = [];
 let chartInstance = null;
 
 function addGraphPoint() {
-    let x = parseFloat(document.getElementById('pt-x').value);
-    let y = parseFloat(document.getElementById('pt-y').value);
+    let x = parseFloat(document.getElementById('pt-x')?.value);
+    let y = parseFloat(document.getElementById('pt-y')?.value);
 
     if (!isNaN(x) && !isNaN(y)) {
         graphPoints.push({ x, y });
@@ -228,9 +218,8 @@ function updatePointsChips() {
     let container = document.getElementById('points-list-container');
     if (!container) return;
     container.innerHTML = graphPoints.map((p, idx) => `
-        <span class="unit-tag" style="margin:2px; display:inline-flex; align-items:center; gap:6px;">
-            (${p.x}, ${p.y}) 
-            <button style="border:none; background:transparent; cursor:pointer; font-weight:bold; color:red;" onclick="removePoint(${idx})">×</button>
+        <span style="display:inline-block; background:#f1f5f9; padding:4px 8px; border-radius:4px; margin:2px;">
+            (${p.x}, ${p.y}) <b style="color:red; cursor:pointer;" onclick="removePoint(${idx})">×</b>
         </span>
     `).join('');
 }
@@ -254,26 +243,19 @@ function renderChart() {
             datasets: [{
                 label: 'Points TP',
                 data: graphPoints,
-                borderColor: '#a855f7',
-                backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.2)',
                 tension: 0.2,
-                showLine: true,
-                pointRadius: 6
+                showLine: true
             }]
         },
-        options: {
-            responsive: true,
-            scales: {
-                x: { type: 'linear', title: { display: true, text: 'Axe X' } },
-                y: { title: { display: true, text: 'Axe Y' } }
-            }
-        }
+        options: { responsive: true }
     });
 }
 
 
 /* ==========================================================================
-   4. OUTILS GÉNÉRAUX & CONVERTISSEURS
+   3. OUTILS GÉNÉRAUX (CHRONO, COMPTEUR, CALCULATRICE, CONVERTISSEUR)
    ========================================================================== */
 
 let chronoInterval = null;
@@ -304,9 +286,9 @@ function resetChrono() {
 }
 
 function createTimer() {
-    let name = document.getElementById('tm-name').value || "Minuteur";
-    let mins = parseInt(document.getElementById('tm-min').value) || 0;
-    let secs = parseInt(document.getElementById('tm-sec').value) || 0;
+    let name = document.getElementById('tm-name')?.value || "Minuteur";
+    let mins = parseInt(document.getElementById('tm-min')?.value) || 0;
+    let secs = parseInt(document.getElementById('tm-sec')?.value) || 0;
     let totalSecs = (mins * 60) + secs;
 
     if (totalSecs <= 0) return;
@@ -330,7 +312,7 @@ function createTimer() {
         if (!disp) { clearInterval(interval); return; }
         if (totalSecs <= 0) {
             clearInterval(interval);
-            disp.innerText = "TERMINÉ !";
+            disp.innerText = "FIN !";
             disp.style.color = "red";
         } else {
             totalSecs--;
@@ -342,7 +324,7 @@ function createTimer() {
 }
 
 function addNewCounter() {
-    let name = document.getElementById('counter-title-in').value || 'Cellule';
+    let name = document.getElementById('counter-title-in')?.value || 'Cellule';
     let wrapper = document.getElementById('counters-wrapper');
     if (!wrapper) return;
 
@@ -351,8 +333,8 @@ function addNewCounter() {
     card.innerHTML = `
         <h4>${name}</h4>
         <div class="count-val">0</div>
-        <button onclick="let v = this.previousElementSibling; v.innerText = parseInt(v.innerText)+1">+</button>
-        <button style="background:#fee2e2; color:#b91c1c;" onclick="let v = this.parentElement.querySelector('.count-val'); if(parseInt(v.innerText)>0) v.innerText = parseInt(v.innerText)-1">-</button>
+        <button class="action-btn" onclick="let v = this.previousElementSibling; v.innerText = parseInt(v.innerText)+1">+</button>
+        <button class="action-btn secondary" onclick="let v = this.parentElement.querySelector('.count-val'); if(parseInt(v.innerText)>0) v.innerText = parseInt(v.innerText)-1">-</button>
     `;
     wrapper.appendChild(card);
     document.getElementById('counter-title-in').value = '';
@@ -375,9 +357,7 @@ function calcEval() {
 const unitOptions = {
     volume: ['mL', 'µL', 'L'],
     masse: ['g', 'mg', 'µg', 'kg'],
-    conc: ['mM', 'µM', 'M', 'mg/mL'],
-    ppm: ['%', 'ppm', 'ppb'],
-    temp: ['°C', 'K', '°F']
+    conc: ['mM', 'µM', 'M', 'mg/mL']
 };
 
 function switchConvCategory(cat) {
@@ -387,15 +367,15 @@ function switchConvCategory(cat) {
     }
 
     if (cat === 'rcf') {
-        document.getElementById('standard-converter').classList.add('hidden');
-        document.getElementById('rcf-converter').classList.remove('hidden');
+        document.getElementById('standard-converter')?.classList.add('hidden');
+        document.getElementById('rcf-converter')?.classList.remove('hidden');
     } else {
-        document.getElementById('standard-converter').classList.remove('hidden');
-        document.getElementById('rcf-converter').classList.add('hidden');
+        document.getElementById('standard-converter')?.classList.remove('hidden');
+        document.getElementById('rcf-converter')?.classList.add('hidden');
 
         let fromSel = document.getElementById('conv-from');
         let toSel = document.getElementById('conv-to');
-        if (fromSel && toSel) {
+        if (fromSel && toSel && unitOptions[cat]) {
             fromSel.innerHTML = ''; toSel.innerHTML = '';
             unitOptions[cat].forEach(u => {
                 fromSel.innerHTML += `<option>${u}</option>`;
@@ -406,9 +386,9 @@ function switchConvCategory(cat) {
 }
 
 function runUnitConversion() {
-    let val = parseFloat(document.getElementById('conv-val').value);
-    let from = document.getElementById('conv-from').value;
-    let to = document.getElementById('conv-to').value;
+    let val = parseFloat(document.getElementById('conv-val')?.value);
+    let from = document.getElementById('conv-from')?.value;
+    let to = document.getElementById('conv-to')?.value;
     let res = document.getElementById('conv-res-text');
 
     if (isNaN(val)) {
@@ -419,8 +399,8 @@ function runUnitConversion() {
 }
 
 function calcRCF() {
-    let r = parseFloat(document.getElementById('rcf-r').value);
-    let rpm = parseFloat(document.getElementById('rcf-rpm').value);
+    let r = parseFloat(document.getElementById('rcf-r')?.value);
+    let rpm = parseFloat(document.getElementById('rcf-rpm')?.value);
     let res = document.getElementById('conv-res-text');
     if (r && rpm && res) {
         let rcf = 1.118e-5 * r * Math.pow(rpm, 2);
@@ -430,14 +410,12 @@ function calcRCF() {
 
 
 /* ==========================================================================
-   5. BIBLIOTHÈQUE ET TABLEAUX
+   4. BIBLIOTHÈQUE (CODE GÉNÉTIQUE & TABLEAU PÉRIODIQUE)
    ========================================================================== */
 
 const geneticData = [
     { first: "U", second: "U", codons: [ {c:"UUU", aa:"Phenylalanine"}, {c:"UUC", aa:"Phenylalanine"}, {c:"UUA", aa:"Leucine"}, {c:"UUG", aa:"Leucine"} ] },
-    { first: "U", second: "C", codons: [ {c:"UCU", aa:"Serine"}, {c:"UCC", aa:"Serine"}, {c:"UCA", aa:"Serine"}, {c:"UCG", aa:"Serine"} ] },
-    { first: "A", second: "U", codons: [ {c:"AUU", aa:"Isoleucine"}, {c:"AUC", aa:"Isoleucine"}, {c:"AUA", aa:"Isoleucine"}, {c:"AUG", aa:"Methionine (Start)", isStart:true} ] },
-    { first: "U", second: "A", codons: [ {c:"UAU", aa:"Tyrosine"}, {c:"UAC", aa:"Tyrosine"}, {c:"UAA", aa:"Stop", isStop:true}, {c:"UAG", aa:"Stop", isStop:true} ] }
+    { first: "A", second: "U", codons: [ {c:"AUU", aa:"Isoleucine"}, {c:"AUC", aa:"Isoleucine"}, {c:"AUG", aa:"Methionine (Start)", isStart:true} ] }
 ];
 
 function buildGeneticTable() {
@@ -445,13 +423,8 @@ function buildGeneticTable() {
     if (!container) return;
     container.innerHTML = geneticData.map(block => `
         <div class="codon-block">
-            <div class="codon-block-title" style="background:#e0e7ff;">${block.first} - ${block.second}</div>
-            ${block.codons.map(item => `
-                <div class="codon-line">
-                    <span class="${item.isStart ? 'start-codon' : ''} ${item.isStop ? 'stop-codon' : ''}">${item.c}</span>
-                    <span>${item.aa}</span>
-                </div>
-            `).join('')}
+            <div class="codon-block-title" style="background:#f3e8ff;">${block.first} - ${block.second}</div>
+            ${block.codons.map(item => `<div class="codon-line"><span>${item.c}</span><span>${item.aa}</span></div>`).join('')}
         </div>
     `).join('');
 }
@@ -464,11 +437,11 @@ function switchGeneticView(view) {
     }
 
     if (view === 'table') {
-        document.getElementById('genetic-table-view').classList.remove('hidden');
-        document.getElementById('genetic-wheel-view').classList.add('hidden');
+        document.getElementById('genetic-table-view')?.classList.remove('hidden');
+        document.getElementById('genetic-wheel-view')?.classList.add('hidden');
     } else {
-        document.getElementById('genetic-table-view').classList.add('hidden');
-        document.getElementById('genetic-wheel-view').classList.remove('hidden');
+        document.getElementById('genetic-table-view')?.classList.add('hidden');
+        document.getElementById('genetic-wheel-view')?.classList.remove('hidden');
     }
 }
 
@@ -478,19 +451,7 @@ const periodicElements = [
     { n: 3, s: "Li", name: "Lithium", cat: "alkali", pos: 19 },
     { n: 4, s: "Be", name: "Béryllium", cat: "alkaline-earth", pos: 20 },
     { n: 5, s: "B", name: "Bore", cat: "metalloid", pos: 31 },
-    { n: 6, s: "C", name: "Carbone", cat: "nonmetal", pos: 32 },
-    { n: 7, s: "N", name: "Azote", cat: "nonmetal", pos: 33 },
-    { n: 8, s: "O", name: "Oxygène", cat: "nonmetal", pos: 34 },
-    { n: 9, s: "F", name: "Fluor", cat: "halogen", pos: 35 },
-    { n: 10, s: "Ne", name: "Néon", cat: "noble", pos: 36 },
-    { n: 11, s: "Na", name: "Sodium", cat: "alkali", pos: 37 },
-    { n: 12, s: "Mg", name: "Magnésium", cat: "alkaline-earth", pos: 38 },
-    { n: 13, s: "Al", name: "Aluminium", cat: "post-trans", pos: 49 },
-    { n: 14, s: "Si", name: "Silicium", cat: "metalloid", pos: 50 },
-    { n: 15, s: "P", name: "Phosphore", cat: "nonmetal", pos: 51 },
-    { n: 16, s: "S", name: "Soufre", cat: "nonmetal", pos: 52 },
-    { n: 17, s: "Cl", name: "Chlore", cat: "halogen", pos: 53 },
-    { n: 18, s: "Ar", name: "Argon", cat: "noble", pos: 54 }
+    { n: 6, s: "C", name: "Carbone", cat: "nonmetal", pos: 32 }
 ];
 
 function buildPeriodicTable() {
@@ -498,7 +459,7 @@ function buildPeriodicTable() {
     if (!board) return;
     board.innerHTML = '';
     
-    for (let i = 1; i <= 54; i++) {
+    for (let i = 1; i <= 36; i++) {
         let el = periodicElements.find(e => e.pos === i);
         if (el) {
             board.innerHTML += `
@@ -514,7 +475,7 @@ function buildPeriodicTable() {
 }
 
 function filterPeriodicTable() {
-    let q = document.getElementById('pt-search').value.toLowerCase();
+    let q = document.getElementById('pt-search')?.value.toLowerCase();
     document.querySelectorAll('.p-elem').forEach(el => {
         let text = el.innerText.toLowerCase() + (el.getAttribute('title') || '').toLowerCase();
         if (text.includes(q)) el.style.opacity = "1";
