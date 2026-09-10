@@ -3,220 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaboKit - Boîte à Outils de Laboratoire</title>
+    <title>LaboKit</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- CDNs sécurisés et stables via jsDelivr -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- BARRE LATÉRALE DE NAVIGATION -->
-        <aside class="sidebar">
-            <div class="logo">
-                <svg width="180" height="45" viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="purpleLiquid" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#c084fc" />
-                      <stop offset="100%" stop-color="#7e22ce" />
-                    </linearGradient>
-                    <linearGradient id="purpleText" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stop-color="#a855f7" />
-                      <stop offset="100%" stop-color="#6b21a8" />
-                    </linearGradient>
-                  </defs>
-                  <g id="logo-mark">
-                    <rect x="5" y="5" width="60" height="60" rx="16" fill="#f3e8ff" />
-                    <path d="M 31 20 L 39 20 M 35 20 L 35 29 L 46 46 C 48 49 46 53 42 53 L 28 53 C 24 53 22 49 24 46 L 35 29" 
-                          fill="none" stroke="#7e22ce" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M 27.5 42 L 42.5 42 C 44 44 45 47 43 50 C 42 51.5 40 51.5 38 51.5 L 32 51.5 C 30 51.5 28 51.5 27 50 C 25 47 26 44 27.5 42 Z" 
-                          fill="url(#purpleLiquid)" />
-                  </g>
-                  <g font-family="sans-serif">
-                    <text x="78" y="46" font-size="32" font-weight="800" fill="#1e1b4b">Labo</text>
-                    <text x="154" y="46" font-size="32" font-weight="800" fill="url(#purpleText)">Kit</text>
-                  </g>
-                </svg>
-            </div>
+        <!-- BARRE DE NAVIGATION PRINCIPALE (EN BAS STYLE MOBILE/APP) -->
+        <main class="content">
 
-            <nav class="nav-menu">
-                <button class="nav-btn active" onclick="switchTab('labo')">
-                    <i data-lucide="flask-conical"></i> <span>Espace Labo</span>
-                </button>
-                <button class="nav-btn" onclick="switchTab('general')">
-                    <i data-lucide="wrench"></i> <span>Général</span>
-                </button>
-                <button class="nav-btn" onclick="switchTab('biblio')">
-                    <i data-lucide="book-open"></i> <span>Bibliothèque</span>
-                </button>
-            </nav>
-        </aside>
-
-        <!-- CONTENU PRINCIPAL -->
-        <main class="main-content">
-
-            <!-- 1. ONGLET ESPACE LABO -->
+            <!-- ================= ONGLET LABO ================= -->
             <section id="tab-labo" class="tab-content active">
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" onclick="switchLabSub('dilutions')">
-                        <i data-lucide="droplet"></i> Dilutions
-                    </button>
-                    <button class="sub-tab-btn" onclick="switchLabSub('molarite')">
-                        <i data-lucide="calculator"></i> Molarité
-                    </button>
-                    <button class="sub-tab-btn" onclick="switchLabSub('graphique')">
-                        <i data-lucide="line-chart"></i> Graphique TP
-                    </button>
+                <header class="app-header">
+                    <h1>🧪 Espace Labo</h1>
+                </header>
+
+                <div class="pill-tabs">
+                    <button class="pill-btn active" onclick="switchSubTab('labo', 'dilution')">Dilutions</button>
+                    <button class="pill-btn" onclick="switchSubTab('labo', 'molarite')">Molarité</button>
+                    <button class="pill-btn" onclick="switchSubTab('labo', 'graphique')">Graphique TP</button>
                 </div>
 
-                <!-- SOUS-PANNEAU DILUTIONS -->
-                <div id="lab-dilutions" class="sub-panel">
-                    <h2>Calculateur de Dilutions</h2>
-                    <div class="pill-tabs">
-                        <button class="pill-btn active" onclick="switchDilutionMode('simple')">Simple (C1V1)</button>
-                        <button class="pill-btn" onclick="switchDilutionMode('serie')">En série</button>
-                        <button class="pill-btn" onclick="switchDilutionMode('inverse')">Inverse</button>
-                        <button class="pill-btn" onclick="switchDilutionMode('prep')">Préparation</button>
+                <!-- SOUS-ONGLET DILUTION -->
+                <div id="sub-dilution" class="sub-content active">
+                    <div class="sub-pill-tabs">
+                        <button class="sub-pill-btn active" onclick="setDilutionMode('simple')">Dilution</button>
+                        <button class="sub-pill-btn" onclick="setDilutionMode('serie')">Dilution en série</button>
+                        <button class="sub-pill-btn" onclick="setDilutionMode('inverse')">Dilution inverse</button>
+                        <button class="sub-pill-btn" onclick="setDilutionMode('preparer')">Préparer une solution</button>
                     </div>
 
-                    <!-- Dilution Simple -->
-                    <div id="dilution-simple" class="dilution-card">
-                        <h3>Dilution Simple (C1 × V1 = C2 × V2)</h3>
-                        <div class="form-group">
-                            <label>Concentration Stock (C1)</label>
-                            <input type="number" id="ds-c1" placeholder="ex: 10">
+                    <div class="form-card">
+                        <!-- Mode Dilution Simple -->
+                        <div id="dil-mode-simple" class="dil-mode">
+                            <div class="field-row"><label>Start conc. (C1)</label><input type="number" id="dil-c1" placeholder="C1"><select id="u-c1"><option>mM</option><option>M</option><option>µM</option></select></div>
+                            <div class="field-row"><label>Conc. cible (C2)</label><input type="number" id="dil-c2" placeholder="C2"><select id="u-c2"><option>mM</option><option>M</option><option>µM</option></select></div>
+                            <div class="field-row"><label>Vol. final (V2)</label><input type="number" id="dil-v2" placeholder="V2"><select id="u-v2"><option>mL</option><option>µL</option><option>L</option></select></div>
+                            <button class="action-btn" onclick="calcDilutionSimple()">Calculer V1 à prélever</button>
                         </div>
-                        <div class="form-group">
-                            <label>Concentration Voulue (C2)</label>
-                            <input type="number" id="ds-c2" placeholder="ex: 2">
-                        </div>
-                        <div class="form-group">
-                            <label>Volume Final Voulu (V2 en mL)</label>
-                            <input type="number" id="ds-v2" placeholder="ex: 100">
-                        </div>
-                        <button class="action-btn" onclick="calcDilutionSimple()">Calculer</button>
-                        <div class="result-box" id="res-ds">Remplissez les champs pour calculer.</div>
-                    </div>
 
-                    <!-- Dilution en Série -->
-                    <div id="dilution-serie" class="dilution-card hidden">
-                        <h3>Dilution en Série</h3>
-                        <div class="form-group">
-                            <label>Concentration Initiale (C1)</label>
-                            <input type="number" id="dser-c1" placeholder="ex: 100">
+                        <!-- Mode Dilution en Série -->
+                        <div id="dil-mode-serie" class="dil-mode hidden">
+                            <div class="field-row"><label>Conc. initiale</label><input type="number" id="ds-c0" placeholder="ex: 100"><select><option>mM</option><option>M</option></select></div>
+                            <div class="field-row"><label>Facteur (1:n)</label><input type="number" id="ds-factor" placeholder="10"></div>
+                            <div class="field-row"><label>Étapes</label><input type="number" id="ds-steps" placeholder="6"></div>
+                            <div class="field-row"><label>Transfert</label><input type="number" id="ds-trans" placeholder="100"><select><option>µL</option><option>mL</option></select></div>
+                            <button class="action-btn" onclick="calcDilutionSerie()">Calculer la série</button>
                         </div>
-                        <div class="form-group">
-                            <label>Facteur de dilution (ex: 2 pour 1/2)</label>
-                            <input type="number" id="dser-factor" placeholder="ex: 2">
-                        </div>
-                        <div class="form-group">
-                            <label>Nombre de tubes</label>
-                            <input type="number" id="dser-steps" placeholder="ex: 5">
-                        </div>
-                        <button class="action-btn" onclick="calcDilutionSerie()">Calculer la série</button>
-                        <div class="result-box" id="res-dser">Résultat...</div>
-                    </div>
 
-                    <!-- Dilution Inverse -->
-                    <div id="dilution-inverse" class="dilution-card hidden">
-                        <h3>Dilution Inverse</h3>
-                        <div class="form-group">
-                            <label>Concentration Initiale (C1)</label>
-                            <input type="number" id="di-c1" placeholder="ex: 10">
+                        <!-- Mode Dilution Inverse -->
+                        <div id="dil-mode-inverse" class="dil-mode hidden">
+                            <div class="field-row"><label>Start conc. (C1)</label><input type="number" id="di-c1" placeholder="C1"><select><option>mM</option></select></div>
+                            <div class="field-row"><label>Vol. stock (V1)</label><input type="number" id="di-v1" placeholder="V1"><select><option>mL</option></select></div>
+                            <div class="field-row"><label>Vol. solvant (Vsolv)</label><input type="number" id="di-vsolv" placeholder="Vsolv"><select><option>mL</option></select></div>
+                            <button class="action-btn" onclick="calcDilutionInverse()">Calculer C2 finale</button>
                         </div>
-                        <div class="form-group">
-                            <label>Volume Prélevé (V1 en mL)</label>
-                            <input type="number" id="di-v1" placeholder="ex: 5">
-                        </div>
-                        <div class="form-group">
-                            <label>Volume Solvant Ajouté (mL)</label>
-                            <input type="number" id="di-v2" placeholder="ex: 45">
-                        </div>
-                        <button class="action-btn" onclick="calcDilutionInverse()">Calculer</button>
-                        <div class="result-box" id="res-di">Résultat...</div>
-                    </div>
 
-                    <!-- Préparation de solution -->
-                    <div id="dilution-prep" class="dilution-card hidden">
-                        <h3>Préparation à partir d'un Solide</h3>
-                        <div class="form-group">
-                            <label>Masse Molaire (MW en g/mol)</label>
-                            <input type="number" id="dp-mw" placeholder="ex: 58.44 (NaCl)">
+                        <!-- Mode Préparer une solution -->
+                        <div id="dil-mode-preparer" class="dil-mode hidden">
+                            <div class="field-row"><label>Poids mol. (MW)</label><input type="number" id="dp-mw" placeholder="ex: 180.16"><span>g/mol</span></div>
+                            <div class="field-row"><label>Conc. cible</label><input type="number" id="dp-c" placeholder="ex: 50"><select id="dp-uc"><option>mM</option><option>M</option></select></div>
+                            <div class="field-row"><label>Vol. final</label><input type="number" id="dp-v" placeholder="ex: 500"><select id="dp-uv"><option>mL</option><option>L</option></select></div>
+                            <button class="action-btn" onclick="calcDilutionPrep()">Calculer Masse à peser</button>
                         </div>
-                        <div class="form-group">
-                            <label>Concentration Ciblée (mM)</label>
-                            <input type="number" id="dp-c" placeholder="ex: 500">
-                        </div>
-                        <div class="form-group">
-                            <label>Volume Désiré (mL)</label>
-                            <input type="number" id="dp-v" placeholder="ex: 250">
-                        </div>
-                        <button class="action-btn" onclick="calcPrepSolution()">Calculer la masse</button>
-                        <div class="result-box" id="res-dp">Résultat...</div>
+
+                        <div id="dil-res" class="res-box">Saisissez vos valeurs pour calculer.</div>
                     </div>
                 </div>
 
-                <!-- SOUS-PANNEAU MOLARITÉ -->
-                <div id="lab-molarite" class="sub-panel hidden">
-                    <h2>Calculateur Général de Molarité</h2>
-                    <div class="pill-tabs">
-                        <button class="pill-btn active" onclick="switchMolMode('masse')">Calculer Masse (m)</button>
-                        <button class="pill-btn" onclick="switchMolMode('molarite')">Calculer Molarité (M)</button>
+                <!-- SOUS-ONGLET MOLARITÉ -->
+                <div id="sub-molarite" class="sub-content">
+                    <div class="sub-pill-tabs">
+                        <button class="sub-pill-btn active" onclick="setMolTarget('masse')">Masse (m)</button>
+                        <button class="sub-pill-btn" onclick="setMolTarget('molarite')">Molarité (M)</button>
+                        <button class="sub-pill-btn" onclick="setMolTarget('volume')">Volume (V)</button>
                     </div>
 
-                    <div class="dilution-card">
-                        <div class="formula-banner">
-                            Formule : <span id="mol-formula-badge" class="badge">m</span> = <span id="mol-formula-text">C × V × MW</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Masse Molaire (g/mol)</label>
-                            <input type="number" id="mol-in-mw" placeholder="ex: 180.16">
-                        </div>
-                        <div class="form-group">
-                            <label>Concentration (mM)</label>
-                            <input type="number" id="mol-in-c" placeholder="ex: 100">
-                        </div>
-                        <div class="form-group">
-                            <label>Volume (mL)</label>
-                            <input type="number" id="mol-in-v" placeholder="ex: 500">
-                        </div>
-                        <div class="form-group">
-                            <label>Masse (g) - (si recherche de molarité)</label>
-                            <input type="number" id="mol-in-m" placeholder="ex: 9.0">
-                        </div>
-                        <button class="action-btn" onclick="calcMolariteComplete()">Calculer</button>
-                        <div class="result-box">
-                            Résultat : <b id="mol-res-text">-</b>
-                        </div>
+                    <div class="form-card">
+                        <div class="formula-banner">$$M = \frac{m}{MW \times V}$$</div>
+                        <div class="field-row" id="row-mol-m"><label>Masse (m)</label><input type="number" id="mol-m" placeholder="ex: 0.5"><select><option>g</option><option>mg</option></select></div>
+                        <div class="field-row"><label>Masse Molaire (MW)</label><input type="number" id="mol-mw" placeholder="ex: 180.16"><span>g/mol</span></div>
+                        <div class="field-row" id="row-mol-v"><label>Volume (V)</label><input type="number" id="mol-v" placeholder="ex: 500"><select id="mol-uv"><option>mL</option><option>L</option><option>µL</option></select></div>
+                        <div class="field-row" id="row-mol-c" style="display:none;"><label>Molarité (M)</label><input type="number" id="mol-c" placeholder="ex: 0.1"><select><option>M</option><option>mM</option></select></div>
+
+                        <button class="action-btn" onclick="calcMolarite()">Calculer</button>
+                        <div id="mol-res" class="res-box">Résultat : -</div>
                     </div>
                 </div>
 
-                <!-- SOUS-PANNEAU GRAPHIQUE TP -->
-                <div id="lab-graphique" class="sub-panel hidden">
-                    <h2>Générateur de Graphiques TP</h2>
-                    <div class="graph-layout">
-                        <div class="dilution-card">
-                            <h3>Ajouter des Points</h3>
-                            <div class="form-group">
-                                <label>Axe X (ex: Temps / Conc)</label>
-                                <input type="number" id="pt-x" placeholder="X">
-                            </div>
-                            <div class="form-group">
-                                <label>Axe Y (ex: Absorbance)</label>
-                                <input type="number" id="pt-y" placeholder="Y">
-                            </div>
-                            <button class="action-btn" onclick="addGraphPoint()">+ Ajouter le Point</button>
-                            <button class="action-btn secondary" onclick="renderChart()" style="margin-top:8px;">Tracer le Graphique</button>
-                            
-                            <div class="points-wrapper" style="margin-top: 15px;">
-                                <h4>Points ajoutés :</h4>
-                                <div id="points-list-container"></div>
-                            </div>
-                        </div>
+                <!-- SOUS-ONGLET GRAPHIQUE TP -->
+                <div id="sub-graphique" class="sub-content">
+                    <div class="form-card">
+                        <h3>Mettre des valeurs de côté & Tracer</h3>
+                        <div class="field-row"><label>Axe X</label><input type="number" id="gx" placeholder="Ex: Conc (mM)"></div>
+                        <div class="field-row"><label>Axe Y</label><input type="number" id="gy" placeholder="Ex: Absorbance"></div>
+                        <button class="action-btn" onclick="addGraphPoint()">+ Ajouter le point</button>
 
-                        <div class="chart-card">
+                        <ul id="points-list" class="points-tag-list"></ul>
+                        <button class="action-btn secondary" onclick="drawChart()">Tracer le graphique</button>
+                        
+                        <div class="chart-wrapper">
                             <canvas id="tpChart"></canvas>
                         </div>
                     </div>
@@ -224,185 +112,130 @@
             </section>
 
 
-            <!-- 2. ONGLET GÉNÉRAL -->
+            <!-- ================= ONGLET GÉNÉRAL ================= -->
             <section id="tab-general" class="tab-content">
+                <header class="app-header">
+                    <h1>🧰 Outils Généraux</h1>
+                </header>
+
                 <div class="pill-tabs">
-                    <button class="pill-btn active" onclick="switchGenTab('timer')"><i data-lucide="timer"></i> Chrono / Minuteur</button>
-                    <button class="pill-btn" onclick="switchGenTab('counter')"><i data-lucide="binary"></i> Compteur</button>
-                    <button class="pill-btn" onclick="switchGenTab('calc')"><i data-lucide="calculator"></i> Calculatrice</button>
-                    <button class="pill-btn" onclick="switchGenTab('convert')"><i data-lucide="refresh-cw"></i> Convertisseur</button>
+                    <button class="pill-btn active" onclick="switchSubTab('general', 'minut')">Minuteurs</button>
+                    <button class="pill-btn" onclick="switchSubTab('general', 'compteur')">Compteur</button>
+                    <button class="pill-btn" onclick="switchSubTab('general', 'conv')">Convertisseur</button>
                 </div>
 
-                <!-- Minuteurs -->
-                <div id="gen-timer" class="gen-panel">
-                    <h2>Chronomètre & Minuteurs multiples</h2>
-                    <div class="grid-2">
-                        <div class="dilution-card">
-                            <h3>Chronomètre</h3>
-                            <div class="chrono-display" id="chrono-text">00:00:00</div>
-                            <div class="button-row">
-                                <button class="action-btn" onclick="startChrono()">Démarrer</button>
-                                <button class="action-btn secondary" onclick="stopChrono()">Pause</button>
-                                <button class="action-btn secondary" onclick="resetChrono()">Reset</button>
-                            </div>
-                        </div>
-
-                        <div class="dilution-card">
-                            <h3>Nouveau Minuteur</h3>
-                            <div class="form-group">
-                                <label>Nom du Minuteur</label>
-                                <input type="text" id="tm-name" placeholder="ex: Incubation tube 1">
-                            </div>
-                            <div class="grid-2">
-                                <input type="number" id="tm-min" placeholder="Minutes">
-                                <input type="number" id="tm-sec" placeholder="Secondes">
-                            </div>
-                            <button class="action-btn" onclick="createTimer()" style="margin-top:10px;">Créer Minuteur</button>
-                        </div>
-                    </div>
-
-                    <div id="active-timers-grid" class="grid-timers" style="margin-top:20px;"></div>
-                </div>
-
-                <!-- Compteur -->
-                <div id="gen-counter" class="gen-panel hidden">
-                    <h2>Compteur Cellulaire</h2>
-                    <div class="dilution-card">
-                        <div class="form-group">
-                            <label>Nom du type cellulaire</label>
-                            <input type="text" id="counter-title-in" placeholder="ex: Lymphocytes">
-                        </div>
-                        <button class="action-btn" onclick="addNewCounter()">Ajouter Compteur</button>
-                    </div>
-                    <div id="counters-wrapper" class="counters-grid" style="margin-top: 20px;"></div>
-                </div>
-
-                <!-- Calculatrice -->
-                <div id="gen-calc" class="gen-panel hidden">
-                    <h2>Calculatrice Rapide</h2>
-                    <div class="calc-box">
-                        <input type="text" id="calc-screen" value="0" readonly>
-                        <div class="calc-pad">
-                            <button onclick="calcPress('C')" class="calc-btn-op">C</button>
-                            <button onclick="calcPress('(')">(</button>
-                            <button onclick="calcPress(')')">)</button>
-                            <button onclick="calcPress('/')" class="calc-btn-op">/</button>
-                            
-                            <button onclick="calcPress('7')">7</button>
-                            <button onclick="calcPress('8')">8</button>
-                            <button onclick="calcPress('9')">9</button>
-                            <button onclick="calcPress('*')" class="calc-btn-op">*</button>
-                            
-                            <button onclick="calcPress('4')">4</button>
-                            <button onclick="calcPress('5')">5</button>
-                            <button onclick="calcPress('6')">6</button>
-                            <button onclick="calcPress('-')" class="calc-btn-op">-</button>
-                            
-                            <button onclick="calcPress('1')">1</button>
-                            <button onclick="calcPress('2')">2</button>
-                            <button onclick="calcPress('3')">3</button>
-                            <button onclick="calcPress('+')" class="calc-btn-op">+</button>
-                            
-                            <button onclick="calcPress('0')">0</button>
-                            <button onclick="calcPress('.')">.</button>
-                            <button onclick="calcEval()" class="calc-btn-eq" style="grid-column: span 2;">=</button>
-                        </div>
+                <div id="sub-minut" class="sub-content active">
+                    <div class="form-card">
+                        <h3>Ajouter un minuteur</h3>
+                        <div class="field-row"><label>Secondes</label><input type="number" id="timer-sec-input" placeholder="ex: 60"></div>
+                        <button class="action-btn" onclick="addTimer()">Lancer Minuteur</button>
+                        <div id="timers-list" class="timers-stack"></div>
                     </div>
                 </div>
 
-                <!-- Convertisseur -->
-                <div id="gen-convert" class="gen-panel hidden">
-                    <h2>Convertisseur d'Unités & Centrifugeuse</h2>
-                    <div class="pill-tabs">
-                        <button class="pill-btn sub-conv active" onclick="switchConvCategory('volume')">Volume</button>
-                        <button class="pill-btn sub-conv" onclick="switchConvCategory('masse')">Masse</button>
-                        <button class="pill-btn sub-conv" onclick="switchConvCategory('conc')">Concentration</button>
-                        <button class="pill-btn sub-conv" onclick="switchConvCategory('rcf')">RPM ↔ RCF (g)</button>
+                <div id="sub-compteur" class="sub-content">
+                    <div class="form-card">
+                        <h3>Compteur de Cellules / Éléments</h3>
+                        <div class="field-row"><label>Nom</label><input type="text" id="counter-title" placeholder="ex: Lymphocytes"></div>
+                        <button class="action-btn" onclick="addCounter()">Créer Compteur</button>
+                        <div id="counters-grid" class="counters-grid"></div>
                     </div>
+                </div>
 
-                    <div id="standard-converter" class="dilution-card">
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>Valeur</label>
-                                <input type="number" id="conv-val" placeholder="0" oninput="runUnitConversion()">
-                            </div>
-                            <div class="form-group">
-                                <label>De</label>
-                                <select id="conv-from" onchange="runUnitConversion()"></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Vers</label>
-                                <select id="conv-to" onchange="runUnitConversion()"></select>
-                            </div>
-                        </div>
+                <div id="sub-conv" class="sub-content">
+                    <div class="sub-pill-tabs">
+                        <button class="sub-pill-btn active" onclick="setConvCategory('vol')">Volume</button>
+                        <button class="sub-pill-btn" onclick="setConvCategory('mass')">Masse</button>
+                        <button class="sub-pill-btn" onclick="setConvCategory('rpm')">RPM/RCF</button>
                     </div>
-
-                    <div id="rcf-converter" class="dilution-card hidden">
-                        <h3>Calculateur de Force Centrifuge Relative (RCF)</h3>
-                        <div class="form-group">
-                            <label>Rayon du Rotor (r en cm)</label>
-                            <input type="number" id="rcf-r" placeholder="ex: 10">
+                    <div class="form-card">
+                        <div id="conv-classic-fields">
+                            <div class="field-row"><label>Valeur</label><input type="number" id="conv-val" placeholder="0" oninput="convertUnits()"></div>
+                            <div class="field-row"><label>Depuis</label><select id="conv-from" onchange="convertUnits()"></select></div>
+                            <div class="field-row"><label>Vers</label><select id="conv-to" onchange="convertUnits()"></select></div>
                         </div>
-                        <div class="form-group">
-                            <label>Vitesse (RPM)</label>
-                            <input type="number" id="rcf-rpm" placeholder="ex: 4000">
+                        <div id="conv-rpm-fields" style="display:none;">
+                            <div class="field-row"><label>Rayon Rotor (cm)</label><input type="number" id="rpm-r" value="10" oninput="convertRpm()"></div>
+                            <div class="field-row"><label>Vitesse (RPM)</label><input type="number" id="rpm-v" placeholder="3000" oninput="convertRpm()"></div>
                         </div>
-                        <button class="action-btn" onclick="calcRCF()">Calculer RCF (g)</button>
-                    </div>
-
-                    <div class="result-box" style="margin-top:15px;">
-                        Résultat : <b id="conv-res-text">0</b>
+                        <div id="conv-res" class="res-box">Converti : 0</div>
                     </div>
                 </div>
             </section>
 
 
-            <!-- 3. ONGLET BIBLIOTHÈQUE -->
+            <!-- ================= ONGLET BIBLIOTHÈQUE ================= -->
             <section id="tab-biblio" class="tab-content">
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" onclick="switchBibSub('adn')">
-                        <i data-lucide="dna"></i> Code Génétique
-                    </button>
-                    <button class="sub-tab-btn" onclick="switchBibSub('periodic')">
-                        <i data-lucide="table"></i> Tableau Périodique
-                    </button>
+                <header class="app-header">
+                    <h1>📚 Bibliothèque</h1>
+                </header>
+
+                <div class="pill-tabs">
+                    <button class="pill-btn active" onclick="switchSubTab('biblio', 'periodic')">Tableau Périodique</button>
+                    <button class="pill-btn" onclick="switchSubTab('biblio', 'codons')">Code Génétique</button>
                 </div>
 
-                <!-- Code Génétique -->
-                <div id="bib-adn" class="sub-panel">
-                    <h2>Table du Code Génétique (Codons & Acides Aminés)</h2>
-                    <div class="pill-tabs">
-                        <button class="pill-btn active" onclick="switchGeneticView('table')">Vue Tableau</button>
-                        <button class="pill-btn" onclick="switchGeneticView('wheel')">Vue Roue</button>
+                <!-- TABLEAU PÉRIODIQUE ENTIER -->
+                <div id="sub-periodic" class="sub-content active">
+                    <div class="search-bar">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="pt-search" placeholder="Élément, symbole ou numéro..." oninput="filterPeriodicTable()">
                     </div>
 
-                    <div id="genetic-table-view">
-                        <div id="codon-table-container" class="codon-container"></div>
+                    <div class="periodic-scroll">
+                        <div id="periodic-grid" class="pt-grid"></div>
                     </div>
 
-                    <div id="genetic-wheel-view" class="dilution-card hidden" style="text-align:center;">
-                        <h3>Roue du Code Génétique</h3>
-                        <p>Partie du centre (5') vers l'extérieur (3') pour lire les codons.</p>
-                        <div style="font-size:1.2rem; font-weight:bold; color:#7e22ce; padding: 30px;">
-                            Exemple: AUG = Méthionine (Start) | UAA, UAG, UGA = Stop
-                        </div>
+                    <div class="pt-legend">
+                        <span class="leg-item alk-m">Métaux alcalins</span>
+                        <span class="leg-item alk-e">Alcalino-terreux</span>
+                        <span class="leg-item trans">Transition</span>
+                        <span class="leg-item nonm">Non-métaux</span>
+                        <span class="leg-item noble">Gaz nobles</span>
                     </div>
                 </div>
 
-                <!-- Tableau Périodique -->
-                <div id="bib-periodic" class="sub-panel hidden">
-                    <h2>Tableau Périodique des Éléments</h2>
-                    <div class="form-group" style="max-width:300px; margin-bottom:15px;">
-                        <input type="text" id="pt-search" placeholder="Rechercher un élément (ex: Sodium, Fe)..." oninput="filterPeriodicTable()">
+                <!-- CODE GÉNÉTIQUE (CODON TABLE) -->
+                <div id="sub-codons" class="sub-content">
+                    <p class="subtitle">Tableau compact des codons ARN vers acides aminés</p>
+                    <div class="codon-table-wrapper">
+                        <table class="codon-table">
+                            <thead>
+                                <tr>
+                                    <th>1ère</th>
+                                    <th>U</th>
+                                    <th>C</th>
+                                    <th>A</th>
+                                    <th>G</th>
+                                </tr>
+                            </thead>
+                            <tbody id="codon-table-body">
+                                <!-- Injecté dynamiquement par JS -->
+                            </tbody>
+                        </table>
                     </div>
-                    <div id="periodic-board" class="periodic-grid"></div>
                 </div>
             </section>
 
         </main>
+
+        <!-- FOOTER / NAV BOTTOM (Style iOS App) -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="switchTab('labo')">
+                <i data-lucide="flask-conical"></i>
+                <span>Labo</span>
+            </button>
+            <button class="nav-item" onclick="switchTab('general')">
+                <i data-lucide="grid"></i>
+                <span>Outils</span>
+            </button>
+            <button class="nav-item" onclick="switchTab('biblio')">
+                <i data-lucide="book-open"></i>
+                <span>Biblio</span>
+            </button>
+        </nav>
     </div>
 
-    <!-- Script principal de l'application -->
     <script src="script.js"></script>
 </body>
 </html>
